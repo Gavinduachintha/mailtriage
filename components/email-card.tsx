@@ -1,8 +1,7 @@
 "use client";
 
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, PenLine, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar } from "@/components/ui/primitives";
 import { CategoryBadge, PriorityIndicator } from "@/components/category-badge";
 import type { Email } from "@/lib/types";
 import { cn, formatTimestamp } from "@/lib/utils";
@@ -15,6 +14,7 @@ interface EmailCardProps {
   onTriage: (email: Email) => void;
 }
 
+/** A single ruled row in the inbox list. */
 export function EmailCard({ email, selected, triaging, onSelect, onTriage }: EmailCardProps) {
   const { analysis } = email;
 
@@ -22,52 +22,58 @@ export function EmailCard({ email, selected, triaging, onSelect, onTriage }: Ema
     <article
       onClick={() => onSelect(email)}
       className={cn(
-        "group relative cursor-pointer rounded-xl border bg-card p-4 transition-all duration-150",
-        "hover:border-foreground/15 hover:shadow-md",
-        selected && "border-primary/50 ring-1 ring-primary/30 shadow-md",
+        "group flex cursor-pointer gap-3 border-b px-4 py-3 transition-colors sm:px-6",
+        "border-l-2",
+        selected ? "border-l-primary bg-card" : "border-l-transparent hover:bg-card/70",
       )}
     >
-      {email.unread && <span className="absolute left-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-primary" />}
+      <span
+        className={cn("mt-2 h-1.5 w-1.5 shrink-0 rounded-full", email.unread ? "bg-primary" : "bg-transparent")}
+        aria-label={email.unread ? "Unread" : undefined}
+      />
 
-      <div className="flex items-start gap-3">
-        <Avatar name={email.sender.name} muted className="mt-0.5" />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline gap-3">
+          <p className={cn("truncate text-sm", email.unread ? "font-semibold" : "font-medium")}>{email.sender.name}</p>
+          <time className="ml-auto shrink-0 font-mono text-xs text-muted-foreground" suppressHydrationWarning>
+            {formatTimestamp(email.receivedAt)}
+          </time>
+        </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2">
-            <p className={cn("truncate text-sm", email.unread ? "font-semibold" : "font-medium")}>{email.sender.name}</p>
-            <p className="hidden truncate text-xs text-muted-foreground sm:block">{email.sender.email}</p>
-            <time className="ml-auto shrink-0 text-xs text-muted-foreground" suppressHydrationWarning>
-              {formatTimestamp(email.receivedAt)}
-            </time>
-          </div>
+        <p className="mt-0.5 truncate text-sm">
+          <span className={email.unread ? "font-medium" : ""}>{email.subject}</span>
+          <span className="text-muted-foreground"> — {email.preview}</span>
+        </p>
 
-          <p className={cn("mt-0.5 truncate text-sm", email.unread ? "text-foreground" : "text-foreground/80")}>{email.subject}</p>
-          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{email.preview}</p>
+        <div className="mt-2 flex min-h-7 flex-wrap items-center gap-x-4 gap-y-1">
+          {analysis ? (
+            <>
+              <CategoryBadge category={analysis.category} />
+              <PriorityIndicator score={analysis.priority} />
+            </>
+          ) : (
+            <span className="text-xs text-muted-foreground">Not triaged</span>
+          )}
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {analysis ? (
-              <>
-                <CategoryBadge category={analysis.category} />
-                <PriorityIndicator score={analysis.priority} />
-              </>
+          <Button
+            size="sm"
+            variant={analysis ? "ghost" : "outline"}
+            className={cn("ml-auto h-7", analysis && !triaging && "sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100")}
+            disabled={triaging}
+            onClick={(e) => {
+              e.stopPropagation();
+              onTriage(email);
+            }}
+          >
+            {triaging ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : analysis ? (
+              <RefreshCw className="h-3.5 w-3.5" />
             ) : (
-              <span className="text-[11px] text-muted-foreground">Not triaged yet</span>
+              <PenLine className="h-3.5 w-3.5" />
             )}
-
-            <Button
-              size="sm"
-              variant={analysis ? "ghost" : "outline"}
-              className="ml-auto"
-              disabled={triaging}
-              onClick={(e) => {
-                e.stopPropagation();
-                onTriage(email);
-              }}
-            >
-              {triaging ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 text-primary" />}
-              {triaging ? "Analyzing…" : analysis ? "Re-triage" : "Triage & Draft"}
-            </Button>
-          </div>
+            {triaging ? "Working…" : analysis ? "Redo" : "Draft reply"}
+          </Button>
         </div>
       </div>
     </article>

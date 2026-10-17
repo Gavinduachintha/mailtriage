@@ -2,14 +2,14 @@ import * as React from "react";
 import { cn, initials } from "@/lib/utils";
 
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("rounded-xl border bg-card shadow-sm", className)} {...props} />;
+  return <div className={cn("rounded-md border bg-card shadow-[0_1px_0_rgba(0,0,0,0.03)]", className)} {...props} />;
 }
 
 export function Badge({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ring-border",
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded border bg-card px-1.5 py-0.5 text-[11px] font-medium text-foreground/80",
         className,
       )}
       {...props}
@@ -21,8 +21,8 @@ export function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInp
   return (
     <input
       className={cn(
-        "h-9 w-full rounded-lg border bg-card px-3 text-sm shadow-xs transition-colors placeholder:text-muted-foreground",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:border-ring",
+        "h-9 w-full rounded-md border bg-card px-3 text-sm transition-colors placeholder:text-muted-foreground",
+        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring",
         className,
       )}
       {...props}
@@ -34,8 +34,8 @@ export function Textarea({ className, ...props }: React.TextareaHTMLAttributes<H
   return (
     <textarea
       className={cn(
-        "w-full resize-none rounded-lg border bg-card p-3 text-sm leading-relaxed shadow-xs transition-colors placeholder:text-muted-foreground scrollbar-thin",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:border-ring",
+        "w-full resize-none rounded-md border bg-card p-3 text-sm leading-relaxed transition-colors placeholder:text-muted-foreground scrollbar-thin",
+        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring",
         className,
       )}
       {...props}
@@ -55,12 +55,22 @@ export function Avatar({ name, muted, className }: { name: string; muted?: boole
   return (
     <span
       className={cn(
-        "inline-flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full text-xs font-semibold",
-        muted ? "bg-muted text-foreground ring-1 ring-border" : "bg-gradient-to-br from-indigo-500 to-violet-500 text-white",
+        "inline-flex h-9 w-9 shrink-0 select-none items-center justify-center rounded-full text-xs font-medium",
+        muted ? "bg-muted text-foreground/80" : "bg-primary text-primary-foreground",
         className,
       )}
     >
       {initials(name)}
     </span>
+  );
+}
+
+/** Small uppercase section heading used consistently across panels. */
+export function SectionLabel({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h3
+      className={cn("text-[11px] font-semibold uppercase tracking-wider text-muted-foreground", className)}
+      {...props}
+    />
   );
 }

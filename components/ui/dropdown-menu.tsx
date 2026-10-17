@@ -35,7 +35,7 @@ export function DropdownMenu({
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+        className="flex items-center rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
       >
         {trigger}
       </button>
@@ -43,7 +43,7 @@ export function DropdownMenu({
         <div
           role="menu"
           className={cn(
-            "absolute top-full z-50 mt-2 w-56 rounded-xl border bg-card p-1 shadow-xl animate-fade-in",
+            "absolute top-full z-50 mt-1.5 w-56 rounded-md border bg-card p-1 animate-fade-in",
             align === "end" ? "right-0" : "left-0",
           )}
         >
@@ -63,8 +63,8 @@ export function DropdownMenuItem({
     <button
       role="menuitem"
       className={cn(
-        "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition-colors cursor-pointer [&_svg]:h-4 [&_svg]:w-4 [&_svg]:text-muted-foreground",
-        destructive ? "text-red-500 hover:bg-red-500/10 [&_svg]:text-red-500" : "hover:bg-muted",
+        "flex w-full items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors cursor-pointer [&_svg]:h-4 [&_svg]:w-4 [&_svg]:text-muted-foreground",
+        destructive ? "text-red-700 hover:bg-red-600/10 dark:text-red-400 [&_svg]:text-current" : "hover:bg-muted",
         className,
       )}
       {...props}

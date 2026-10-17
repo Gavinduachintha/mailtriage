@@ -11,16 +11,16 @@ interface WritingStyleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   examples: StyleExample[];
-  onAdd: (text: string) => void;
-  onRemove: (id: string) => void;
+  onAdd: (text: string) => void | Promise<void>;
+  onRemove: (id: string) => void | Promise<void>;
 }
 
 export function WritingStyleDialog({ open, onOpenChange, examples, onAdd, onRemove }: WritingStyleDialogProps) {
   const [text, setText] = useState("");
 
-  const add = () => {
+  const add = async () => {
     if (!text.trim()) return;
-    onAdd(text.trim());
+    await onAdd(text.trim());
     setText("");
   };
 
@@ -29,7 +29,7 @@ export function WritingStyleDialog({ open, onOpenChange, examples, onAdd, onRemo
       open={open}
       onOpenChange={onOpenChange}
       title="My Writing Style"
-      description="Paste a few past replies. Gemma 3 uses them locally to match your tone in new drafts."
+      description="Paste a few past replies. The local model uses them to match your tone in new drafts."
       footer={<Button onClick={() => onOpenChange(false)}>Done</Button>}
     >
       <div className="space-y-3">
@@ -45,21 +45,21 @@ export function WritingStyleDialog({ open, onOpenChange, examples, onAdd, onRemo
       </div>
 
       <div className="mt-6">
-        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <p className="mb-2 text-xs font-medium text-muted-foreground">
           Saved examples · {examples.length}
         </p>
         {examples.length === 0 ? (
-          <p className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
+          <p className="rounded-md border border-dashed p-4 text-center text-xs text-muted-foreground">
             No examples yet. 3–5 replies is usually enough.
           </p>
         ) : (
           <ul className="space-y-2">
             {examples.map((ex) => (
-              <li key={ex.id} className="group flex gap-3 rounded-lg border bg-muted/30 p-3">
+              <li key={ex.id} className="group flex gap-3 rounded-md border bg-background p-3">
                 <p className="line-clamp-3 flex-1 whitespace-pre-wrap text-xs leading-relaxed text-foreground/80">{ex.text}</p>
                 <button
                   onClick={() => onRemove(ex.id)}
-                  className="self-start rounded-md p-1 text-muted-foreground opacity-0 transition-all hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100 focus:opacity-100 cursor-pointer"
+                  className="self-start rounded p-1 text-muted-foreground opacity-0 transition-all hover:bg-red-600/10 hover:text-red-700 group-hover:opacity-100 focus:opacity-100 cursor-pointer"
                   aria-label="Remove example"
                 >
                   <Trash2 className="h-3.5 w-3.5" />

@@ -2,28 +2,29 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Neutral stone surfaces with a single muted teal accent. No gradients. */
 :root {
-  --background: #fafafa;
-  --foreground: #18181b;
+  --background: #f6f5f2;
+  --foreground: #1c1f23;
   --card: #ffffff;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
-  --border: #e4e4e7;
-  --primary: #6366f1;
+  --muted: #eeede9;
+  --muted-foreground: #626870;
+  --border: #dedcd5;
+  --primary: #0f5f5a;
   --primary-foreground: #ffffff;
-  --ring: #818cf8;
+  --ring: #2f8a83;
 }
 
 .dark {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #111113;
-  --muted: #1c1c1f;
-  --muted-foreground: #a1a1aa;
-  --border: #27272a;
-  --primary: #818cf8;
-  --primary-foreground: #0b0b0f;
-  --ring: #6366f1;
+  --background: #141618;
+  --foreground: #ecebe7;
+  --card: #1b1e21;
+  --muted: #25292c;
+  --muted-foreground: #9aa0a6;
+  --border: #2e3338;
+  --primary: #4fb3aa;
+  --primary-foreground: #0d1a19;
+  --ring: #4fb3aa;
 }
 
 @theme inline {
@@ -36,8 +37,8 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-ring: var(--ring);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
 }
 
 * {
@@ -48,15 +49,16 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 14px;
 }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .animate-fade-in {
-  animation: fade-in 180ms ease-out;
+  animation: fade-in 120ms ease-out;
 }
 
 .scrollbar-thin {

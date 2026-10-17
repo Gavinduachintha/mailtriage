@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, BookmarkPlus, Check, Copy, Lightbulb, Loader2, RefreshCw, Sparkles, X } from "lucide-react";
+import { ArrowLeft, BookmarkPlus, Check, Copy, Loader2, PenLine, RefreshCw, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, Card, ScrollArea, Separator, Textarea } from "@/components/ui/primitives";
+import { Avatar, Card, ScrollArea, SectionLabel, Textarea } from "@/components/ui/primitives";
 import { CategoryBadge, PriorityIndicator } from "@/components/category-badge";
 import type { Email } from "@/lib/types";
 import { formatTimestamp } from "@/lib/utils";
@@ -14,14 +14,24 @@ interface DraftPanelProps {
   onClose: () => void;
   onTriage: (email: Email) => void;
   onSaveStyleExample: (text: string) => void;
+  onSendDraft: (email: Email, draft: string) => Promise<void>;
 }
 
-export function DraftPanel({ email, triaging, onClose, onTriage, onSaveStyleExample }: DraftPanelProps) {
+export function DraftPanel({
+  email,
+  triaging,
+  onClose,
+  onTriage,
+  onSaveStyleExample,
+  onSendDraft,
+}: DraftPanelProps) {
   const { analysis } = email;
   const [draft, setDraft] = useState(analysis?.draft ?? "");
   const [syncedDraft, setSyncedDraft] = useState(analysis?.draft);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [sendingDraft, setSendingDraft] = useState(false);
+  const [draftSent, setDraftSent] = useState(false);
 
   if (analysis?.draft !== syncedDraft) {
     setSyncedDraft(analysis?.draft);
@@ -40,20 +50,34 @@ export function DraftPanel({ email, triaging, onClose, onTriage, onSaveStyleExam
     setTimeout(() => setSaved(false), 1500);
   };
 
+  const sendDraft = async () => {
+    if (!draft.trim() || sendingDraft) return;
+    setSendingDraft(true);
+    try {
+      await onSendDraft(email, draft);
+      setDraftSent(true);
+      setTimeout(() => setDraftSent(false), 2000);
+    } catch {
+      /* parent surfaces the error banner */
+    } finally {
+      setSendingDraft(false);
+    }
+  };
+
   return (
-    <div className="flex h-full flex-col bg-background animate-fade-in">
+    <div className="flex h-full flex-col bg-card animate-fade-in">
       <div className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
         <Button variant="ghost" size="icon" className="xl:hidden" onClick={onClose} aria-label="Back to inbox">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <p className="truncate text-sm font-medium">{email.subject}</p>
+        <p className="truncate text-sm font-semibold">{email.subject}</p>
         <Button variant="ghost" size="icon" className="ml-auto hidden xl:inline-flex" onClick={onClose} aria-label="Close panel">
           <X className="h-4 w-4" />
         </Button>
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="space-y-5 p-4 sm:p-6">
+        <div className="space-y-6 p-4 sm:p-6">
           <section>
             <div className="flex items-start gap-3">
               <Avatar name={email.sender.name} muted />
@@ -61,54 +85,50 @@ export function DraftPanel({ email, triaging, onClose, onTriage, onSaveStyleExam
                 <p className="text-sm font-medium">{email.sender.name}</p>
                 <p className="truncate text-xs text-muted-foreground">{email.sender.email}</p>
               </div>
-              <time className="text-xs text-muted-foreground" suppressHydrationWarning>
+              <time className="font-mono text-xs text-muted-foreground" suppressHydrationWarning>
                 {formatTimestamp(email.receivedAt)}
               </time>
             </div>
-            <div className="mt-4 max-h-72 overflow-y-auto whitespace-pre-wrap rounded-xl border bg-muted/30 p-4 text-sm leading-relaxed text-foreground/90 scrollbar-thin">
+            <div className="mt-4 max-h-72 overflow-y-auto whitespace-pre-wrap rounded-md border bg-background p-4 text-sm leading-relaxed text-foreground/90 scrollbar-thin">
               {email.body}
             </div>
           </section>
 
           {!analysis ? (
-            <Card className="flex flex-col items-center gap-3 border-dashed p-8 text-center">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <Sparkles className="h-5 w-5 text-primary" />
-              </span>
+            <Card className="flex flex-col items-start gap-3 border-dashed p-5">
               <div>
                 <p className="text-sm font-medium">No analysis yet</p>
-                <p className="mt-1 text-xs text-muted-foreground">Let Gemma 3 categorize this email and draft a reply locally.</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Categorize this email and draft a reply using the local model.
+                </p>
               </div>
               <Button onClick={() => onTriage(email)} disabled={triaging}>
-                {triaging ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                {triaging ? "Analyzing locally…" : "Triage & Draft"}
+                {triaging ? <Loader2 className="h-4 w-4 animate-spin" /> : <PenLine className="h-4 w-4" />}
+                {triaging ? "Working…" : "Draft reply"}
               </Button>
             </Card>
           ) : (
             <>
               <section>
-                <h3 className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  <Sparkles className="h-3.5 w-3.5 text-primary" /> AI Analysis
-                </h3>
-                <Card className="space-y-4 p-4">
-                  <div className="flex flex-wrap items-center gap-3">
+                <SectionLabel className="mb-2">Assessment</SectionLabel>
+                <Card className="divide-y">
+                  <div className="flex flex-wrap items-center gap-3 px-4 py-3">
                     <CategoryBadge category={analysis.category} />
                     <PriorityIndicator score={analysis.priority} showScore />
                   </div>
-                  <p className="text-sm leading-relaxed">{analysis.summary}</p>
-                  <Separator />
-                  <div className="flex gap-2.5">
-                    <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">Suggested action</p>
-                      <p className="mt-0.5 text-sm">{analysis.suggestedAction}</p>
-                    </div>
+                  <div className="px-4 py-3">
+                    <p className="text-xs font-medium text-muted-foreground">Summary</p>
+                    <p className="mt-1 text-sm leading-relaxed">{analysis.summary}</p>
+                  </div>
+                  <div className="px-4 py-3">
+                    <p className="text-xs font-medium text-muted-foreground">Suggested action</p>
+                    <p className="mt-1 text-sm leading-relaxed">{analysis.suggestedAction}</p>
                   </div>
                 </Card>
               </section>
 
               <section>
-                <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Draft Reply</h3>
+                <SectionLabel className="mb-2">Draft reply</SectionLabel>
                 <div className="relative">
                   <Textarea
                     value={draft}
@@ -118,22 +138,32 @@ export function DraftPanel({ email, triaging, onClose, onTriage, onSaveStyleExam
                     disabled={triaging}
                   />
                   {triaging && (
-                    <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-card/80 text-sm text-muted-foreground backdrop-blur-[1px]">
+                    <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-md bg-card/90 text-sm text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" /> Regenerating…
                     </div>
                   )}
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button onClick={copy} disabled={!draft || triaging}>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Button onClick={sendDraft} disabled={!draft.trim() || triaging || sendingDraft}>
+                    {sendingDraft ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : draftSent ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                    {sendingDraft ? "Saving to Gmail…" : draftSent ? "Opened Drafts" : "Save to Gmail drafts"}
+                  </Button>
+                  <Button variant="outline" onClick={copy} disabled={!draft || triaging}>
                     {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    {copied ? "Copied" : "Copy Draft"}
+                    {copied ? "Copied" : "Copy"}
                   </Button>
                   <Button variant="outline" onClick={() => onTriage(email)} disabled={triaging}>
                     <RefreshCw className={triaging ? "h-4 w-4 animate-spin" : "h-4 w-4"} /> Regenerate
                   </Button>
-                  <Button variant="ghost" onClick={save} disabled={!draft || triaging}>
-                    {saved ? <Check className="h-4 w-4 text-emerald-500" /> : <BookmarkPlus className="h-4 w-4" />}
-                    {saved ? "Saved" : "Save as Style Example"}
+                  <Button variant="ghost" className="sm:ml-auto" onClick={save} disabled={!draft || triaging}>
+                    {saved ? <Check className="h-4 w-4" /> : <BookmarkPlus className="h-4 w-4" />}
+                    {saved ? "Saved" : "Save as style example"}
                   </Button>
                 </div>
               </section>
